@@ -1,16 +1,22 @@
 import pandas as pd
 import joblib
 import streamlit as st
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
+# Get the directory where the script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Load model with error handling
 try:
-    model = joblib.load('House_Price_predict_model.pkl')
+    model_path = os.path.join(script_dir, 'House_Price_predict_model.pkl')
+    model = joblib.load(model_path)
 except Exception as e:
     try:
         # Fallback to alternative model file
-        model = joblib.load('model.pkl')
+        model_path = os.path.join(script_dir, 'model.pkl')
+        model = joblib.load(model_path)
     except Exception:
         st.error(f"Error loading model: {str(e)}")
         st.stop()
@@ -18,7 +24,8 @@ except Exception as e:
 st.title('House Price Prediction')
 
 st.header('Enter the details of the house')
-data = pd.read_csv('Bengaluru_House_Data.csv')
+csv_path = os.path.join(script_dir, 'Bengaluru_House_Data.csv')
+data = pd.read_csv(csv_path)
 
 try:
     loc_categories = model.named_steps['columntransformer'].transformers_[0][1].named_steps['onehotencoder'].categories_[0]
