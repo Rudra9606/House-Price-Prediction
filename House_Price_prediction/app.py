@@ -1,30 +1,20 @@
 import pandas as pd
 import joblib
 import streamlit as st
-import pickle
-import sys
 import warnings
 warnings.filterwarnings('ignore')
 
-# Handle scikit-learn version compatibility
-import sklearn.compose._column_transformer as ct
-
-# Define _RemainderColsList if it doesn't exist (for newer scikit-learn versions)
-if not hasattr(ct, '_RemainderColsList'):
-    class _RemainderColsList(list):
-        pass
-    ct._RemainderColsList = _RemainderColsList
-
-# Try to load model with compatibility for different scikit-learn versions
+# Load model with error handling
 try:
     model = joblib.load('House_Price_predict_model.pkl')
-except (AttributeError, ModuleNotFoundError) as e:
-    # If version mismatch, try alternative model file
+except Exception as e:
     try:
+        # Fallback to alternative model file
         model = joblib.load('model.pkl')
-    except:
-        st.error(f"Unable to load model: {str(e)}")
+    except Exception:
+        st.error(f"Error loading model: {str(e)}")
         st.stop()
+
 st.title('House Price Prediction')
 
 st.header('Enter the details of the house')
