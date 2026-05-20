@@ -39,15 +39,8 @@ st.header('Enter the details of the house')
 csv_path = os.path.join(script_dir, 'Bengaluru_House_Data.csv')
 data = pd.read_csv(csv_path)
 
-# Get exact location categories from the model
-try:
-    # Extract categories from the model's one-hot encoder
-    ohe = model.named_steps['columntransformer'].transformers_[0][1].named_steps['onehotencoder']
-    loc_categories = ohe.categories_[0].tolist()
-except Exception as e:
-    # Fallback: use locations from data
-    st.warning(f"Using locations from data file: {str(e)}")
-    loc_categories = sorted(data['location'].unique().tolist())
+# Get location categories from data file
+loc_categories = sorted(data['location'].dropna().unique().tolist())
 
 loc = st.selectbox('Location', loc_categories)
 sqft = st.number_input('Square Feet', min_value=0.0, step=1.0)
