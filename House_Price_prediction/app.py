@@ -3,7 +3,19 @@ import joblib
 import streamlit as st
 import os
 import warnings
+import sys
 warnings.filterwarnings('ignore')
+
+# Fix for scikit-learn version compatibility
+try:
+    from sklearn.compose._column_transformer import _RemainderColsList
+except ImportError:
+    # Define the missing class for newer scikit-learn versions
+    import sklearn.compose._column_transformer as ct
+    if not hasattr(ct, '_RemainderColsList'):
+        class _RemainderColsList(list):
+            pass
+        ct._RemainderColsList = _RemainderColsList
 
 # Get the directory where the script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
