@@ -27,6 +27,10 @@ except:
 csv_path = os.path.join(script_dir, 'Bengaluru_House_Data.csv')
 try:
     data = pd.read_csv(csv_path)
+    # Convert numeric columns to proper types
+    data['price'] = pd.to_numeric(data['price'], errors='coerce')
+    data['total_sqft'] = pd.to_numeric(data['total_sqft'], errors='coerce')
+    data = data.dropna(subset=['price', 'total_sqft'])  # Remove rows with invalid data
     # Create a simple model based on average prices
     avg_prices = data.groupby('location')['price'].mean().to_dict()
 except:
