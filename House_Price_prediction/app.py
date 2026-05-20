@@ -45,17 +45,35 @@ except Exception:
     loc_categories = data['location'].unique().tolist()
 
 loc = st.selectbox('Location', loc_categories)
-sqft = st.number_input('Square Feet', min_value=0, step=1)
+sqft = st.number_input('Square Feet', min_value=0.0, step=1.0)
 beds = st.number_input('BHK', min_value=1, step=1)
 bath = st.number_input('Bathroom', min_value=1, step=1)
 balc = st.number_input('Balcony', min_value=0, step=1)
-
-input = pd.DataFrame([[loc, sqft, beds, bath, balc]], columns=['location', 'total_sqft', 'bedrooms', 'bath', 'balcony'])
 
 if st.button('Predict Price'):
     if loc not in loc_categories:
         st.error(f"Location '{loc}' not recognized by the model. Please select a valid location.")
     else:
-        output = model.predict(input)
-        out_str = 'Price of the house is: ' + str(output[0]*100000)
-        st.success(out_str)
+        try:
+            # Create input dataframe with correct data types
+            input_data = pd.DataFrame({
+                'location': [loc],
+                'total_sqft': [float(sqft)],
+                'bedrooms': [int(beds)],
+                'bath': [int(bath)],
+                'balcony': [int(balc)]
+            })
+            
+            # Ensure correct column order (matching training data)
+            input_data = input_data[['location', 'total_sqft', 'bedrooms', 'bath', 'balcony']]
+            
+            # Make prediction
+            output = model.predict(input_data)
+            price = float(output[0])
+            
+            # Display result
+            out_str = f'Price of the house is: ₹{price:,.2f}'
+            st.success(out_str)
+        except Exception as e:
+            st.error(f"Error making prediction: {str(e)}")
+            st.info("Please check that all inputs are valid.")
