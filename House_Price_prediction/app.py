@@ -57,21 +57,25 @@ if st.button('🔮 Predict Price', use_container_width=True):
             # Use overall average if location not found
             base_price = data['price'].mean() if not data.empty else 50  # Default in lakhs
         
-        # Adjust based on features (simplified model)
-        # Price per sqft (in lakhs per 1000 sqft)
-        price_per_sqft_factor = (sqft / 1000) * (base_price / 100)
+        # Calculate price per sqft from base price and average sqft
+        avg_sqft_for_location = data[data['location'] == loc]['total_sqft'].mean() if loc in data['location'].values else data['total_sqft'].mean()
+        price_per_sqft = base_price / (avg_sqft_for_location / 100000)  # Convert sqft to appropriate units
         
-        # BHK factor (more bedrooms increase price)
-        bhk_factor = 1 + (beds - 1) * 0.15
+        # Start with price based on size
+        size_based_price = (sqft / avg_sqft_for_location) * base_price
+        
+        # Feature adjustments (subtle - only 5-10% variation)
+        # BHK factor (more bedrooms slightly increase price)
+        bhk_factor = 1 + (beds - 3) * 0.05  # Neutral at 3 BHK
         
         # Bathroom factor
-        bath_factor = 1 + (bath - 2) * 0.05
+        bath_factor = 1 + (bath - 2) * 0.03  # Neutral at 2 bathrooms
         
-        # Balcony factor (positive feature)
-        balc_factor = 1 + (balc * 0.03)
+        # Balcony factor (minimal impact)
+        balc_factor = 1 + (balc * 0.02)  # Reduced from 0.03
         
-        # Calculate final price
-        predicted_price = base_price * (price_per_sqft_factor / (base_price / 100)) * bhk_factor * bath_factor * balc_factor
+        # Calculate final price - more conservative
+        predicted_price = size_based_price * bhk_factor * bath_factor * balc_factor
         
         # Display result
         col1, col2, col3 = st.columns(3)
@@ -90,6 +94,7 @@ if st.button('🔮 Predict Price', use_container_width=True):
         st.info(f"""
         **Price Breakdown:**
         - Base location price: ₹{base_price:.2f} L
+        - Size adjustment: {size_based_price/base_price:.2f}x (from {avg_sqft_for_location:.0f} sqft avg → {sqft:.0f} sqft)
         - BHK adjustment: {bhk_factor:.2f}x
         - Bathroom adjustment: {bath_factor:.3f}x
         - Balcony factor: {balc_factor:.3f}x
