@@ -36,38 +36,17 @@ except Exception as e:
 st.title('House Price Prediction')
 
 st.header('Enter the details of the house')
-csv_path = os.path.join(script_dir, 'Bengaluru_House_Data.csv')
-data = pd.read_csv(csv_path)
 
-# Get location categories from model's transformer
-loc_categories = None
+# Read model categories from file
+categories_file = os.path.join(script_dir, 'model_categories.txt')
 try:
-    # Try different ways to extract categories based on model structure
-    ct = model.named_steps['columntransformer']
-    
-    # Get the first transformer (should be for location)
-    transformer = ct.transformers_[0][1]
-    
-    # Try to get OneHotEncoder
-    if hasattr(transformer, 'named_steps'):
-        ohe = transformer.named_steps.get('onehotencoder')
-        if ohe and hasattr(ohe, 'categories_'):
-            loc_categories = ohe.categories_[0]
-    elif hasattr(transformer, 'categories_'):
-        loc_categories = transformer.categories_[0]
-    
-    if loc_categories is not None:
-        loc_categories = sorted(loc_categories.tolist())
-except Exception as e:
-    pass
-
-# If we couldn't get from model, use data but filtered
-if loc_categories is None:
-    try:
-        loc_categories = sorted(data['location'].dropna().unique().tolist())
-    except:
-        loc_categories = ['Unknown']
-        st.error("Could not load locations. Please check the data file.")
+    with open(categories_file, 'r') as f:
+        loc_categories = [line.strip() for line in f.readlines() if line.strip()]
+except:
+    # Fallback: try to load from CSV
+    csv_path = os.path.join(script_dir, 'Bengaluru_House_Data.csv')
+    data = pd.read_csv(csv_path)
+    loc_categories = sorted(data['location'].dropna().unique().tolist())
 
 loc = st.selectbox('Location', loc_categories)
 sqft = st.number_input('Square Feet', min_value=0.0, step=1.0)
