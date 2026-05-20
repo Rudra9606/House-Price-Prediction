@@ -6,6 +6,6 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .streamlit/
-*.pkl
 .env
 .DS_Store
+
