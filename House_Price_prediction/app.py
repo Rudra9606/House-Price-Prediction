@@ -69,8 +69,18 @@ if st.button('Predict Price'):
         input_data = input_data[['location', 'total_sqft', 'bedrooms', 'bath', 'balcony']]
         
         # Make prediction
-        output = model.predict(input_data)
-        price = float(output[0])
+        try:
+            output = model.predict(input_data)
+            price = float(output[0])
+        except ValueError as ve:
+            # If feature mismatch, try model.pkl
+            if "features" in str(ve):
+                st.warning("Trying alternate model...")
+                model_alt = joblib.load(os.path.join(script_dir, 'model.pkl'))
+                output = model_alt.predict(input_data)
+                price = float(output[0])
+            else:
+                raise
         
         # Display result
         out_str = f'Price of the house is: ₹{price:,.2f}'
